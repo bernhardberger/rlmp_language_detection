@@ -14,6 +14,7 @@
 
 namespace Rlmp\RlmpLanguageDetection;
 
+use Contemas\DeveloperTools\Utility\DebugUtility;
 use TYPO3\CMS\Core\Database\DatabaseConnection;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -87,9 +88,10 @@ class LanguageDetection extends AbstractPlugin {
 			return $content;
 		}
 
-		// Break out if the last page visited was also on our site:
+        // Break out if the last page visited was also on our site:
 		$referrer = (string)GeneralUtility::getIndpEnv('HTTP_REFERER');
-		if (TYPO3_DLOG) {
+
+        if (TYPO3_DLOG) {
 			GeneralUtility::devLog('Referrer: ' . $referrer, $this->extKey);
 		}
 		if (!$this->conf['dontBreakIfLastPageWasOnSite'] && $referrer !== '' && (
@@ -99,12 +101,12 @@ class LanguageDetection extends AbstractPlugin {
 				stripos($referrer . '/', $this->getTSFE()->baseUrl) !== FALSE
 			)
 		) {
-			return $content;
+            return $content;
 		}
 
 		// Break out if the session tells us that the user has selected language
 		if (!$this->conf['dontBreakIfLanguageIsAlreadySelected']) {
-			if ($this->cookieLifetime) {
+            if ($this->cookieLifetime) {
 				// read from browser-cookie
 				$languageSessionKey = $_COOKIE[$this->extKey . '_languageSelected'];
 			} else {
@@ -113,6 +115,7 @@ class LanguageDetection extends AbstractPlugin {
 					$this->extKey . '_languageSelected'
 				);
 			}
+
 
 			// If session key exists but no language GP var -
 			// we should redirect client to selected language
@@ -127,7 +130,9 @@ class LanguageDetection extends AbstractPlugin {
 			}
 		}
 
-		//GATHER DATA
+
+
+        //GATHER DATA
 
 		//Get available languages
 		$availableLanguagesArr = $this->conf['useOneTreeMethod'] ? $this->getSysLanguages() : $this->getMultipleTreeLanguages();
@@ -135,7 +140,9 @@ class LanguageDetection extends AbstractPlugin {
 			GeneralUtility::devLog('Detecting available languages in installation', $this->extKey, 0, $availableLanguagesArr);
 		}
 
-		//Collect language aliases
+
+
+        //Collect language aliases
 		$languageAliases = array();
 		if ($this->conf['useLanguageAliases']) {
 			$tmp = $conf['languageAliases.'];
@@ -161,7 +168,10 @@ class LanguageDetection extends AbstractPlugin {
 					//Get Accepted Languages from Browser
 					$acceptedLanguagesArr = $this->getAcceptedLanguages();
 
-					if (TYPO3_DLOG) {
+
+
+
+                    if (TYPO3_DLOG) {
 						GeneralUtility::devLog('Detecting user browser languages', $this->extKey, 0, $acceptedLanguagesArr);
 					}
 
@@ -436,11 +446,11 @@ class LanguageDetection extends AbstractPlugin {
 
 		$res = $this->getDB()->exec_SELECTquery(
 			'sys_language.uid, static_languages.lg_iso_2, static_languages.lg_country_iso_2',
-			'sys_language JOIN static_languages ON sys_language.static_lang_isocode = static_languages.uid',
+			'sys_language JOIN static_languages ON sys_language.language_isocode = LOWER(static_languages.lg_iso_2)',
 			'1=1' . $this->cObj->enableFields('sys_language') . $this->cObj->enableFields('static_languages')
 		);
 
-		while ($row = $this->getDB()->sql_fetch_assoc($res)) {
+        while ($row = $this->getDB()->sql_fetch_assoc($res)) {
 			if (TYPO3_DLOG && !$row['isocode']) {
 				GeneralUtility::devLog('No ISO-code given for language with UID ' . $row['uid'], $this->extKey);
 			}
@@ -449,6 +459,7 @@ class LanguageDetection extends AbstractPlugin {
 			} else {
 				$availableLanguages[trim(strtolower($row['lg_iso_2']))] = (int)$row['uid'];
 			}
+
 
 		}
 
